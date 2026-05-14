@@ -1,0 +1,30 @@
+# configs/train_config_exp2.yaml
+# Experiment 2: Targeting improved Recall by starting at optimal LR,
+# training longer, and using stronger augmentation.
+
+experiment_name: "medical_cnn_chest_xray_exp2"
+data_dir: "data_resized"
+
+# Hyperparameters
+# Start at 0.0001 — the LR where Exp1 achieved its best checkpoint (epoch 18)
+# This skips the slow warm-up phase and jumps straight to fine-tuning territory
+num_epochs: 100
+batch_size: 32
+learning_rate: 0.0001
+
+# Scheduler
+# Longer patience (5 vs 3) gives the model more room to recover from validation spikes
+scheduler_patience: 5
+scheduler_factor: 0.2
+
+# Regularization
+weight_decay: 0.0001
+
+# Augmentation flags (read by dataset.py)
+# ColorJitter simulates brightness/contrast variation between different X-ray machines
+use_color_jitter: false
+color_jitter_brightness: 0.2
+color_jitter_contrast: 0.2
+
+# Imbalance handling
+pos_weight: null  # Calculated dynamically from class distribution

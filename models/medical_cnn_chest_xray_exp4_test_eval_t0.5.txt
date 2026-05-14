@@ -1,0 +1,23 @@
+Model: models/medical_cnn_chest_xray_exp4_best_model.pth
+Threshold: 0.5
+Total Test Images: 582
+
+AUC-ROC    : 0.9738
+F1-Score   : 0.9389
+Precision  : 0.8886
+Recall     : 0.9951
+Specificity: 0.7052
+Accuracy   : 90.89%
+
+Confusion Matrix (TN FP / FN TP):
+122 51
+2 407
+
+              precision    recall  f1-score   support
+
+      NORMAL       0.98      0.71      0.82       173
+   PNEUMONIA       0.89      1.00      0.94       409
+
+    accuracy                           0.91       582
+   macro avg       0.94      0.85      0.88       582
+weighted avg       0.92      0.91      0.90       582

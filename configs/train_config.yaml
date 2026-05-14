@@ -1,0 +1,14 @@
+# configs/train_config.yaml
+
+experiment_name: "medical_cnn_chest_xray_exp1"
+data_dir: "data_resized"
+
+# Hyperparameters
+num_epochs: 30
+batch_size: 32
+
+# Learning Rate
+learning_rate: 0.001
+
+# Loss weighting (will be computed dynamically if set to null, but let's calculate inside train.py)
+pos_weight: null

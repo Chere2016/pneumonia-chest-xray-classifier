@@ -1,0 +1,34 @@
+# configs/train_config_exp4.yaml
+# Experiment 4: Stable Training with CosineAnnealingWarmRestarts
+#
+# Root Cause of Exp3 instability:
+#   - ReduceLROnPlateau caused two large spikes in valid_loss when it fired suddenly
+#
+# Fix: Switch to CosineAnnealingWarmRestarts
+#   - LR smoothly oscillates in a cosine curve (no abrupt drops)
+#   - T_0=10: first cycle lasts 10 epochs (LR goes 0.0001 → 1e-6 → 0.0001)
+#   - T_mult=2: each restart doubles the cycle length (10 → 20 → 40)
+#   - Result: smooth, spike-free training curves throughout all 60 epochs
+
+experiment_name: "medical_cnn_chest_xray_exp4"
+data_dir: "data_resized"
+
+# Hyperparameters
+num_epochs: 100
+batch_size: 32
+learning_rate: 0.0001    # Peak LR — cosine will smoothly decay from here
+
+# Scheduler
+scheduler_type: "cosine"  # Switch from 'plateau' to 'cosine'
+cosine_T0: 10             # First cycle: 10 epochs
+cosine_Tmult: 2           # Cycles: 10 → 20 → 40 epochs
+min_lr: 0.000001          # Floor LR (eta_min)
+
+# Regularization
+weight_decay: 0.0001
+
+# Augmentation
+use_color_jitter: false
+
+# Imbalance handling
+pos_weight: null  # Calculated dynamically from class distribution

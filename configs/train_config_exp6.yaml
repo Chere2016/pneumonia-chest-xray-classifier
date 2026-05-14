@@ -1,0 +1,38 @@
+# configs/train_config_exp6.yaml
+# Experiment 6: Linear Warmup + Cosine Decay (the most stable possible LR schedule)
+#
+# Root Cause of Exp5 early instability:
+#   - Starting at LR=0.0001 from epoch 1 with randomly initialized weights
+#     caused large, chaotic gradient updates in the first 20-30 epochs
+#   - WeightedRandomSampler amplified this noise via different class distributions
+#
+# Fix: Linear Warmup for first 10 epochs
+#   - LR ramps linearly from 1e-6 → 1e-4 over epochs 1-10
+#   - Model stabilizes with gentle gradients before entering full training
+#   - Then: smooth CosineAnnealingLR from epoch 11 → 100 (no restarts)
+#
+# Expected LR curve:
+#   Epoch  1-10: 0.000001 → 0.0001  (linear ramp up)
+#   Epoch 11-100: 0.0001 → 0.000001 (smooth cosine decay)
+
+experiment_name: "medical_cnn_chest_xray_exp6"
+data_dir: "data_resized"
+
+# Hyperparameters
+num_epochs: 100
+batch_size: 32
+learning_rate: 0.0001    # Target LR reached after warmup
+
+# Scheduler
+scheduler_type: "warmup_cosine"
+warmup_epochs: 10        # Ramp from min_lr → learning_rate over first 10 epochs
+min_lr: 0.000001         # Starting warmup LR and floor for cosine decay
+
+# Regularization
+weight_decay: 0.0001
+
+# Augmentation
+use_color_jitter: false
+
+# Imbalance handling
+pos_weight: null  # Calculated dynamically from class distribution

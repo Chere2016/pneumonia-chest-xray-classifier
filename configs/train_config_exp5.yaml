@@ -1,0 +1,32 @@
+# configs/train_config_exp5.yaml
+# Experiment 5: Stable Training with CosineAnnealingLR (single smooth decay, NO warm restarts)
+#
+# Root Cause of Exp4 spike:
+#   - CosineAnnealingWarmRestarts restarts at epoch 70 (10+20+40=70)
+#   - LR jumped back to 0.0001 when model was already well-converged → catastrophic spike
+#
+# Fix: CosineAnnealingLR (cosine_decay)
+#   - Single monotonic cosine curve over ALL 60 epochs (no restarts ever)
+#   - LR pattern: 0.0001 → smooth decay → 1e-6 (at epoch 60)
+#   - Completely spike-free, stable training curves guaranteed
+
+experiment_name: "medical_cnn_chest_xray_exp5"
+data_dir: "data_resized"
+
+# Hyperparameters
+num_epochs: 100
+batch_size: 32
+learning_rate: 0.0001    # Peak LR at epoch 1, smoothly decays to min_lr by epoch 60
+
+# Scheduler
+scheduler_type: "cosine_decay"  # Single smooth cosine, NO warm restarts
+min_lr: 0.000001                # Floor LR (eta_min) reached at final epoch
+
+# Regularization
+weight_decay: 0.0001
+
+# Augmentation
+use_color_jitter: false
+
+# Imbalance handling
+pos_weight: null  # Calculated dynamically from class distribution

@@ -1,0 +1,7 @@
+Epoch: 30
+Validation AUC-ROC: 0.9920
+Validation F1-Score: 0.9771
+Validation Precision: 0.9821
+Validation Recall: 0.9722
+Validation Accuracy: 96.77%
+Validation Loss: 0.0591
