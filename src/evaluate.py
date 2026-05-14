@@ -149,7 +149,7 @@ def _save_sample_predictions(model, device, data_dir, classes, threshold, n_samp
     combined = list(zip(image_paths, labels_list))
     random.seed(42)
     random.shuffle(combined)
-    combined = combined[:200]  # scan first 200
+    combined = combined[:500]  # scan more images to find enough wrong ones
 
     correct_samples   = []
     incorrect_samples = []
@@ -168,47 +168,51 @@ def _save_sample_predictions(model, device, data_dir, classes, threshold, n_samp
             else:
                 incorrect_samples.append(entry)
 
-    # Build a balanced selection
-    n_correct   = min(3, len(correct_samples))
-    n_incorrect = min(n_samples - n_correct, len(incorrect_samples))
-    selected = correct_samples[:n_correct] + incorrect_samples[:n_incorrect]
-    # Pad with more correct predictions if not enough wrong ones
-    if len(selected) < n_samples:
-        selected += correct_samples[n_correct: n_samples - len(selected) + n_correct]
-    selected = selected[:n_samples]
+    # Build a proportional selection — ~20% wrong cases (min 2), rest correct
+    # This reflects real model accuracy rather than cherry-picking failures
+    n_incorrect = min(max(2, n_samples // 5), len(incorrect_samples))
+    n_correct   = min(n_samples - n_incorrect, len(correct_samples))
+    selected    = correct_samples[:n_correct] + incorrect_samples[:n_incorrect]
+    selected    = selected[:n_samples]
 
-    # Plot
-    fig, axes = plt.subplots(1, len(selected), figsize=(4 * len(selected), 5))
-    if len(selected) == 1:
-        axes = [axes]
-
+    # --- Build grid layout ---
+    n_cols = 4
+    n_rows = (len(selected) + n_cols - 1) // n_cols
+    fig, axes = plt.subplots(n_rows, n_cols,
+                              figsize=(4 * n_cols, 4.5 * n_rows))
+    axes = np.array(axes).flatten()
     fig.patch.set_facecolor('#1a1a2e')
 
-    for ax, (path, true_label, pred_label, prob) in zip(axes, selected):
+    for idx, (path, true_label, pred_label, prob) in enumerate(selected):
+        ax = axes[idx]
         img = Image.open(path).convert('RGB').resize((224, 224))
-        ax.imshow(img, cmap='gray')
+        ax.imshow(img)
         ax.axis('off')
 
-        true_name = classes[true_label]
-        pred_name = classes[pred_label]
-        correct   = (true_label == pred_label)
-
+        true_name  = classes[true_label]
+        pred_name  = classes[pred_label]
+        correct    = (true_label == pred_label)
         confidence = prob if pred_label == 1 else 1 - prob
-        color = '#00e676' if correct else '#ff1744'  # green if right, red if wrong
+        color      = '#00e676' if correct else '#ff1744'
+        marker     = '✓' if correct else '✗'
 
-        title = (f"GT: {true_name}\n"
-                 f"Pred: {pred_name}\n"
-                 f"Conf: {confidence:.1%}")
-        ax.set_title(title, fontsize=11, color=color, fontweight='bold',
-                     pad=6, backgroundcolor='#1a1a2e')
+        ax.set_title(
+            f"{marker}  GT: {true_name}\nPred: {pred_name}  ({confidence:.1%})",
+            fontsize=10, color=color, fontweight='bold',
+            pad=5, backgroundcolor='#1a1a2e'
+        )
 
-    verdict = "✓ Correct" if correct else "✗ Wrong"  # noqa — last iteration
+    # Hide any unused axes
+    for idx in range(len(selected), len(axes)):
+        axes[idx].axis('off')
+
     fig.suptitle(
-        "Exp5 — Sample Predictions on Held-Out Test Set",
-        fontsize=13, color='white', fontweight='bold', y=1.02
+        "Exp5 — Sample Predictions on Held-Out Test Set  "
+        "(Green = Correct  |  Red = Wrong)",
+        fontsize=13, color='white', fontweight='bold', y=1.01
     )
     plt.tight_layout()
-    plt.savefig(save_path, dpi=150, bbox_inches='tight', facecolor='#1a1a2e')
+    plt.savefig(save_path, dpi=130, bbox_inches='tight', facecolor='#1a1a2e')
     plt.close(fig)
     print(f"✅ Sample predictions image saved to: {save_path}")
 
