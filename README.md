@@ -141,9 +141,3 @@ python src/evaluate.py \
 
 All 6 runs are logged with full metric curves on Weights & Biases:
 [wandb.ai — medical-image-classifier](https://wandb.ai/u1999542-university-of-girona/medical-image-classifier)
-
----
-
-## Notes on the instability
-
-One thing I kept seeing throughout all experiments was occasional large spikes in validation loss — even with smooth LR schedules. After digging into it, the culprit is `WeightedRandomSampler`. Each epoch it draws a different random distribution of Normal vs Pneumonia images, so some epochs by pure chance produce harder batches. This is a known trade-off: the sampler fixes the class imbalance problem but introduces per-epoch variance. The AUC metric is robust to this (it's threshold-free), which is exactly why I used it as the checkpoint criterion instead of F1 or accuracy.
